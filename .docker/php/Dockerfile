@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     gnupg \
     build-essential \
+    jq \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
@@ -62,8 +63,10 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
     && php -r "unlink('composer-setup.php');"
 
 # Install Node.js and npm
-RUN curl -sL https://deb.nodesource.com/setup_16.x | bash - && \
-    apt-get install -y nodejs
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g npm@latest \
+    && apt-get clean
 
 # Check installation of Node.js and npm
 RUN node -v && npm -v
