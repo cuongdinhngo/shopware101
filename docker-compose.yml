@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  sw_database:
+    image: mysql:latest
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: shopware_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: user
+      MYSQL_PASSWORD: abc123
+    networks:
+      - app-network
+    volumes:
+      - db-data:/var/lib/mysql:rw
+
+  sw_php:
+    build:
+      context: ./.docker/php
+      dockerfile: Dockerfile
+    container_name: sw_php
+    expose:
+      - "9000"  # Expose the PHP-FPM port to other containers
+    networks:
+      - app-network
+    volumes:
+      - ./:/var/www/html
+
+  sw_apache:
+    image: httpd:latest
+    container_name: sw_apache
+    ports:
+      - "8088:80" # Map port 8080 on your host to port 80 in the container
+    volumes:
+      - ./:/var/www/html
+      - ./.docker/apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
+    restart: unless-stopped
+    depends_on:
+      - sw_php  # Make sure Apache starts after PHP-FPM
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db-data:
